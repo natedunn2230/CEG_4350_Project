@@ -1,4 +1,6 @@
 ProjectRequirements.pdf
 IPC-Methods/Pipe/a.out
+IPC-Methods/(In)direct-Message-Passing/a.out
 IPC-Methods/Socket/ProducerOutput.txt
 IPC-Methods/Socket/ConsumerOutput.txt
+.vscode/
