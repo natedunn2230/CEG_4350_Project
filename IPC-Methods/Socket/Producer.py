@@ -19,6 +19,7 @@ producer_file = None
 
 while True:
     
+    # file to write producer data to
     producer_file = open("ProducerOutput.txt", "w")
 
     # wait for consumer connection, timeout after 10 seconds

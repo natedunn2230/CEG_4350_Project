@@ -11,12 +11,16 @@ consumer_socket.connect((HOST, PORT))
 # packer is used to unpack binary data into tuple
 binary_packer = struct.Struct('I')
 
+# file to write consumer data to
 f = open("ConsumerOutput.txt", "w")
 
 while True:
     # recieve data in chunks. Each chunk is the size of 
     # the packed integer tuple
     raw_data = consumer_socket.recv(binary_packer.size)
+
+    # if there is no data on next data chunk consumption,
+    # break connection loop
     if not raw_data:
         break
 
