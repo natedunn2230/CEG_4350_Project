@@ -60,7 +60,7 @@ void ProducerJob(int *pipe_accessor, FILE *producer_file)
     srand(time(NULL));
 
     //producer file for checking cooperation between processes
-    producer_file = fopen("/tmp/ProducerOutput.txt", "w+");
+    producer_file = fopen("/tmp/PipeProducerOutput.txt", "w+");
 
     // close unused side of pipe
     close(pipe_accessor[READ_END]);
@@ -86,7 +86,7 @@ by the producer process
 void ConsumerJob(int *pipe_accessor, FILE *consumer_file)
 {
     // consumer file for checking cooperation between processes
-    consumer_file = fopen("/tmp/ConsumerOutput.txt", "w+");
+    consumer_file = fopen("/tmp/PipeConsumerOutput.txt", "w+");
 
     // closes unused end of the pipe
     close(pipe_accessor[WRITE_END]);
