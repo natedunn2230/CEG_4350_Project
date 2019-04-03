@@ -33,6 +33,7 @@ while True:
     print("Connected to {}".format(address))
     
     # send 100 random integers (range 1, 10000) to the consumer process
+    # Set limit to 10000 to improve readability when comparing numbers
     for i in range(DATA_SIZE):
         data = random.randint(0, 10000)
 

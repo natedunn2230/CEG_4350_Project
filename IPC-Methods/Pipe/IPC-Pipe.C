@@ -29,7 +29,7 @@ int main(void)
 
     /*Fork a child process.
     // I am assuming that the child process is the consumer
-     and the parent process is the producer*/
+    and the parent process is the producer*/
     pid = fork();
 
     if (pid == -1)
@@ -68,8 +68,8 @@ void ProducerJob(int *pipe_accessor, FILE *producer_file)
     // create 100 random integers
     for(int i = 0; i < DATA_SIZE; i++)
     {
-        // limited random value range to 1000 to improve readibility
-        int new_data = rand() % 1000;
+        // limited random value range to 10000 to improve readibility
+        int new_data = rand() % 10000;
         write(pipe_accessor[WRITE_END], &new_data, sizeof(new_data)); // write to pipe
         fprintf(producer_file, "%d\n", new_data); // write to output file
     }
