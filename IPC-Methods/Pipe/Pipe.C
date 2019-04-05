@@ -22,10 +22,8 @@ int main(void)
     pid_t pid; //used to determine process type (parent / child)
 
     //Pipe creation
-    if(pipe(fd) == -1)
-    {
-        fprintf(stderr, "Pipe creation unsuccessful");
-    }
+    if(pipe(fd) < 0)
+        exit(1);
 
     /*Fork a child process.
     // I am assuming that the child process is the consumer
@@ -33,13 +31,12 @@ int main(void)
     pid = fork();
 
     if (pid == -1)
-    {
-        fprintf(stderr, "Process creation unsuccessful");
-    }
+        exit(1);
     else if(pid > 0)
     {
         // parent process takes role of the producer
         ProducerJob(fd, producer_file);
+        wait(NULL);
     }
     else 
     {
@@ -57,7 +54,7 @@ the writed end of the pipe for the consumer to read later
 void ProducerJob(int *pipe_accessor, FILE *producer_file)
 {
     // set seed for random generator
-    srand(time(NULL));
+    srand(time(0));
 
     //producer file for checking cooperation between processes
     producer_file = fopen("/tmp/PipeProducerOutput.txt", "w+");
@@ -70,7 +67,9 @@ void ProducerJob(int *pipe_accessor, FILE *producer_file)
     {
         // limited random value range to 10000 to improve readibility
         int new_data = rand() % 10000;
+
         write(pipe_accessor[WRITE_END], &new_data, sizeof(new_data)); // write to pipe
+
         fprintf(producer_file, "%d\n", new_data); // write to output file
     }
     
@@ -85,6 +84,9 @@ by the producer process
 */
 void ConsumerJob(int *pipe_accessor, FILE *consumer_file)
 {
+    // # of bytes returned from read() and data read from pipe
+    int read_size, incoming_data;
+
     // consumer file for checking cooperation between processes
     consumer_file = fopen("/tmp/PipeConsumerOutput.txt", "w+");
 
@@ -92,10 +94,15 @@ void ConsumerJob(int *pipe_accessor, FILE *consumer_file)
     close(pipe_accessor[WRITE_END]);
 
     // read each integer from the pipe and write it to output file
-    for(int i = 0; i < DATA_SIZE; i++){
-        int incoming_data;
+    while(1)
+    {
+        // read from pipe
+        read_size = read(pipe_accessor[READ_END], &incoming_data, BUFFER_SIZE); 
 
-        read(pipe_accessor[READ_END], &incoming_data, BUFFER_SIZE);
+        // we are done reading if there is nothing
+        if(read_size <= 0) break;
+
+        // write data to file
         fprintf(consumer_file, "%d\n", incoming_data);
     }
 
