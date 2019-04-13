@@ -6,7 +6,15 @@ PORT = 8082
 
 # consumer socket settings
 consumer_socket = socket.socket()
-consumer_socket.connect((HOST, PORT))
+connected = False
+
+# attempt connection with the producer
+while not connected:
+    try:
+        consumer_socket.connect((HOST, PORT))
+        connected = True
+    except Exception:
+        pass ## do nothing and reattempt connection
 
 # packer is used to unpack binary data into tuple
 binary_packer = struct.Struct('I')
