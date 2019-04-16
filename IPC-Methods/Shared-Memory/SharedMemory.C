@@ -9,30 +9,40 @@
 #include<sys/ipc.h>
 #include<sys/shm.h>
 #include <sys/shm.h>
+#include <time.h>
 
-#define BUFFER_SIZE 2
-#define TOTAL_DATA 10
+#define BUFFER_SIZE 10
+#define TOTAL_DATA 100
 #define IN_INDEX BUFFER_SIZE
 #define OUT_INDEX BUFFER_SIZE + 1
 
 int main()
 {
-    // buffer variables
+    // buffer variables (1-100 bytes -> buffer, 101 -> in value, 102 -> out value)
+    // transfered between processes using shared memory
     int * shared_mem;
 
     // keys for shared memory of variables
-    key_t buffer_key = ftok("buffer", 1);
-    key_t in_out_key = ftok("in_out", 2);
+    key_t shared_mem_key = ftok("buffer", 1);
 
     // get id for shared memory
-    int shared_mem_id = shmget(buffer_key, OUT_INDEX * sizeof(int), 0666 |IPC_CREAT);
+    int shared_memory_size = (BUFFER_SIZE + 2) * sizeof(int);
+    int shared_mem_id = shmget(shared_mem_key, shared_memory_size, 0666 | IPC_CREAT);
 
     // assign variables to shared memory
     shared_mem = (int *)shmat(shared_mem_id, NULL,0);
+
+    // check to see if shared memory could be allocated
+    if (shared_mem == (void *) -1)
+    {
+        perror("shmat failed");
+        exit(1);
+    }
     
     shared_mem[IN_INDEX] = 0; // set in
     shared_mem[OUT_INDEX] = 0; // set out
 
+    // semaphores for process coordination
     sem_t * mutex;
     sem_t * full;
     sem_t * empty;
@@ -61,51 +71,64 @@ int main()
         exit(1);
     else if(pid == 0)
     {
-       // child process takes role of the consumer
+        // child process takes role of the consumer
 
-        int consumed_data;
-        printf("%d\n", 1);
-        sem_wait(full);
-        printf("%d\n", 2);
+        // consumer file for checking cooperation between processes  
+        FILE * consumer_file = fopen("/tmp/SharedConsumerOutput.txt", "w+");
 
-        sem_wait(mutex);
+        for(int i = 0; i < TOTAL_DATA; i++)
+        {
+            int consumed_data;
 
-        consumed_data = shared_mem[shared_mem[OUT_INDEX]];
-        shared_mem[OUT_INDEX] = (shared_mem[OUT_INDEX] + 1) % BUFFER_SIZE;
+            // wait for critical section to be available 
+            sem_wait(full);
+            sem_wait(mutex);
 
-        printf("CONSUMED %d\n", consumed_data);
+            // consume data item from the buffer
+            consumed_data = shared_mem[shared_mem[OUT_INDEX]];
+            shared_mem[OUT_INDEX] = (shared_mem[OUT_INDEX] + 1) % BUFFER_SIZE;
 
-        sem_post(mutex);
-        sem_post(empty);
-        printf("%d\n", shared_mem[IN_INDEX]);
-        printf("%d\n", shared_mem[OUT_INDEX]);
+            fprintf(consumer_file, "%d\n", consumed_data); // write to output file
 
+            // release the lock
+            sem_post(mutex);
+            sem_post(empty);
+        }
+
+        fclose(consumer_file);
     }
     else
     {
         // parent process takes role of the producer
-        int new_data = rand() % 100000;
 
-        printf("%d\n", 3);
+        // producer file for checking cooperation between processes  
+        FILE * producer_file = fopen("/tmp/SharedProducerOutput.txt", "w+");
+        srand(time(NULL)); // seed for number generator
 
-        sem_wait(empty);
+        for(int i = 0; i < TOTAL_DATA; i++)
+        {   
+            int new_data = rand() % 100000;
 
-        printf("%d\n", 4);
+            // wait for critical section to become available
+            sem_wait(empty);
+            sem_wait(mutex);
 
-        sem_wait(mutex);
+            // add item to buffer
+            shared_mem[shared_mem[IN_INDEX]] = new_data;
+            shared_mem[IN_INDEX] = (shared_mem[IN_INDEX] + 1) % BUFFER_SIZE;
 
-        // add item to buffer
-        shared_mem[shared_mem[IN_INDEX]] = new_data;
-        shared_mem[IN_INDEX] = (shared_mem[IN_INDEX] + 1) % BUFFER_SIZE;
+            fprintf(producer_file, "%d\n", new_data); // write to output file
 
-        printf("PRODUCED %d\n", new_data);
+            // release the lock
+            sem_post(mutex);
+            sem_post(full);
+        }
 
-        sem_post(mutex);
-        sem_post(full);
-
-        printf("p %d\n",  shared_mem[IN_INDEX]);
+        fclose(producer_file);
     }
 
+    // remove attachment of shared memory
+    shmdt(shared_mem);
 
     return 0;
 }
