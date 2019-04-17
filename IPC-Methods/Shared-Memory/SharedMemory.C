@@ -18,8 +18,8 @@
 
 int main()
 {
-    // buffer variables (1-100 bytes -> buffer, 101 -> in value, 102 -> out value)
-    // transfered between processes using shared memory
+    // shared memory to be transferred between processes
+    // holds buffer, and in / out variables
     int * shared_mem;
 
     // keys for shared memory of variables
@@ -62,7 +62,7 @@ int main()
     }
 
     /*Fork a child process.
-    // I am assuming that the child process is the consumer
+    I am assuming that the child process is the consumer
     and the parent process is the producer*/
     pid = fork();
 
@@ -103,11 +103,12 @@ int main()
 
         // producer file for checking cooperation between processes  
         FILE * producer_file = fopen("/tmp/SharedProducerOutput.txt", "w+");
+
         srand(time(NULL)); // seed for number generator
 
         for(int i = 0; i < TOTAL_DATA; i++)
         {   
-            int new_data = rand() % 100000;
+            int new_data = rand() % 100000; // limit data to 1000000 for readability
 
             // wait for critical section to become available
             sem_wait(empty);
@@ -127,8 +128,14 @@ int main()
         fclose(producer_file);
     }
 
-    // remove attachment of shared memory
+    // purge of the shared memory
     shmdt(shared_mem);
+    shmctl(shared_mem_id, IPC_RMID, 0);
+
+    // close the semaphores
+    sem_close(mutex);
+    sem_close(full);
+    sem_close(empty);
 
     return 0;
 }
