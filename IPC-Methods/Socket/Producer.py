@@ -37,7 +37,7 @@ while True:
     for i in range(DATA_SIZE):
         data = random.randint(0, 10000)
 
-        # convert data into binary data to be sent over connection
+        # pack data into binary format to be sent over connection
         raw_data = struct.Struct('I').pack((data))
         client.send(raw_data)
 
