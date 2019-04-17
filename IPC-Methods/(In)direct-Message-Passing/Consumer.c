@@ -8,7 +8,8 @@
 
 #define DATA_SIZE 100
 
-// structure for the message
+// structure for the message to be
+// sent over the queue
 struct buffer { 
     long mesg_type; 
     int payload[1]; 
@@ -28,7 +29,8 @@ int main()
     // generate key
     key = ftok("my_queue", 2230); 
 
-    // obtain identifier
+    // obtain message queue identifier
+    // or get existing one
     queue = msgget(key, 0666 | IPC_CREAT); 
 
     count = 0;

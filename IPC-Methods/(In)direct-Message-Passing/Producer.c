@@ -8,7 +8,8 @@
 
 #define DATA_SIZE 100
 
-// structure for the message
+// structure for the message to be
+// sent over the queue
 struct buffer { 
     long mesg_type; 
     int payload[1]; 
@@ -36,7 +37,7 @@ int main()
 
     for(int i = 0; i <DATA_SIZE; i++)
     {
-        // generate data and set buffer lement
+        // generate data and set buffer element
         new_data = rand() % 10000;
         msg.mesg_type = 1; 
         msg.payload[0] = new_data;
