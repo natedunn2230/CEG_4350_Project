@@ -38,7 +38,7 @@ int main()
     for(int i = 0; i <DATA_SIZE; i++)
     {
         // generate data and set buffer element
-        new_data = rand() % 10000;
+        new_data = rand() % 100000;
         msg.mesg_type = 1; 
         msg.payload[0] = new_data;
 

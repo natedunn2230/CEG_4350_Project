@@ -75,8 +75,8 @@ int main(void)
         // create 100 random integers
         for(int i = 0; i < DATA_SIZE; i++)
         {
-            // limited random value range to 10000 to improve readibility
-            int new_data = rand() % 10000;
+            // limited random value range to 100000 to improve readibility
+            int new_data = rand() % 100000;
 
             write(fd[WRITE_END], &new_data, sizeof(new_data)); // write to pipe
 

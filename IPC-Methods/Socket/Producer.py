@@ -32,10 +32,10 @@ while True:
 
     print("Connected to {}".format(address))
     
-    # send 100 random integers (range 1, 10000) to the consumer process
+    # send 100 random integers (range 1, 100000) to the consumer process
     # Set limit to 10000 to improve readability when comparing numbers
     for i in range(DATA_SIZE):
-        data = random.randint(0, 10000)
+        data = random.randint(0, 100000)
 
         # pack data into binary format to be sent over connection
         raw_data = struct.Struct('I').pack((data))
